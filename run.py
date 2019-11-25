@@ -18,11 +18,15 @@ def run():
     repository_dir = os.environ['REPOSITORY_DIR']
     backup_subdir = os.environ['BACKUP_SUBDIR']
 
+    ddl_dir = os.path.join(repository_dir, backup_subdir)
+
+    shutil.rmtree(ddl_dir)
+
     for d in databases:
-        db_backup_dir = os.path.join(repository_dir, backup_subdir, d)
-        print(f" Scripting {d} to {db_backup_dir}")
+        db_backup_dir = os.path.join(ddl_dir, d)
+
+        logging.info(f'Scripting {d} to {db_backup_dir}')
         
-        shutil.rmtree(db_backup_dir)
         sp.run([
             'mssql-scripter',
             '--server', server,
@@ -35,23 +39,34 @@ def run():
             '--exclude-use-database',
         ])
 
-        sp.run([
+    logging.info(f'Committing and pushing repository at {repository_dir}')
+        
+    sp.run(
+        [
             'git',
             'add',
             '-A',
-        ])
+        ],
+        cwd=db_backup_dir,
+    )
 
-        sp.run([
+    sp.run(
+        [
             'git',
             'commit',
             '-m',
-            f'"{date.today():%d/%m/%Y}"',
-        ])
+            f'{date.today():%d/%m/%Y}',
+        ],
+        cwd=db_backup_dir,
+    )
 
-        sp.run([
+    sp.run(
+        [
             'git',
             'push',
-        ])
+        ],
+        cwd=db_backup_dir,
+    )
 
 
 def get_parameters():
@@ -69,7 +84,7 @@ def get_parameters():
 
 
 def schedule_scripting():
-    schedule.every(1).minutes.do(run)
+    schedule.every().day.at("5:00").do(run)
 
     try:
         while True:
