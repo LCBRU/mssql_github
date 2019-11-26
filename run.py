@@ -15,18 +15,33 @@ def run():
     server = os.environ['MSSQL_SERVER']
     user = os.environ['MSSQL_USER']
     password = os.environ['MSSQL_PASSWORD']
-    repository_dir = os.environ['REPOSITORY_DIR']
-    backup_subdir = os.environ['BACKUP_SUBDIR']
+    repository_parent_dir = os.environ['REPOSITORY_PARENT_DIR']
+    repository_name = os.environ['REPOSITORY_NAME']
 
-    ddl_dir = os.path.join(repository_dir, backup_subdir)
+    repository_dir = os.path.join(repository_parent_dir, repository_name)
 
-    shutil.rmtree(ddl_dir)
+    if os.path.exists(repository_dir):
+        shutil.rmtree(repository_dir)
+
+    sp.run(
+        [
+            'git',
+            'clone',
+            f'https://github.com/LCBRU/{repository_name}.git',
+        ],
+        cwd=repository_parent_dir,
+    )
+
+    ddl_dir = os.path.join(repository_dir, 'ddl')
+
+    if os.path.exists(ddl_dir):
+        shutil.rmtree(ddl_dir)
 
     for d in databases:
         db_backup_dir = os.path.join(ddl_dir, d)
 
         logging.info(f'Scripting {d} to {db_backup_dir}')
-        
+
         sp.run([
             'mssql-scripter',
             '--server', server,
@@ -67,6 +82,9 @@ def run():
         ],
         cwd=db_backup_dir,
     )
+
+    if os.path.exists(repository_dir):
+        shutil.rmtree(repository_dir)
 
 
 def get_parameters():
