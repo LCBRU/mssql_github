@@ -84,7 +84,7 @@ def get_parameters():
 
 
 def schedule_scripting():
-    schedule.every().day.at("5:00").do(run)
+    schedule.every().day.at("05:00").do(run)
 
     try:
         while True:
