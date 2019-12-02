@@ -64,7 +64,7 @@ def run():
             'add',
             '-A',
         ],
-        cwd=db_backup_dir,
+        cwd=repository_dir,
     )
 
     sp.run(
@@ -74,7 +74,7 @@ def run():
             '-m',
             f'{date.today():%d/%m/%Y}',
         ],
-        cwd=db_backup_dir,
+        cwd=repository_dir,
     )
 
     sp.run(
@@ -82,7 +82,7 @@ def run():
             'git',
             'push',
         ],
-        cwd=db_backup_dir,
+        cwd=repository_dir,
     )
 
     if os.path.exists(repository_dir):
