@@ -11,7 +11,9 @@ from datetime import date
 
 
 def run():
-    databases = json.loads(os.getenv('DATABASES', "[]"))
+    databases_env = os.getenv('DATABASES', "[]")
+    logging.info(f'Databases: "{databases_env}"')
+    databases = json.loads(databases_env)
     server = os.environ['MSSQL_SERVER']
     user = os.environ['MSSQL_USER']
     password = os.environ['MSSQL_PASSWORD']
