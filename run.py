@@ -1,13 +1,19 @@
+import traceback
 import schedule
 import shutil
 import time
 import logging
+from logging.handlers import SMTPHandler
 import os
-import subprocess as sp
+import subprocess
 from dotenv import load_dotenv
 import json
 import argparse
 from datetime import date
+
+class ApplicationError(Exception):
+    def __init__(self, message):
+        self.message = message
 
 
 def run():
@@ -25,14 +31,19 @@ def run():
     if os.path.exists(repository_dir):
         shutil.rmtree(repository_dir)
 
-    sp.run(
+    completed_process = subprocess.run(
         [
             'git',
             'clone',
             f'https://github.com/LCBRU/{repository_name}.git',
         ],
         cwd=repository_parent_dir,
+        capture_output=True,
+        text=True,
     )
+
+    if completed_process.returncode > 0:
+        raise ApplicationError(f'Error cloning repository:\n\n{completed_process.stderr}')
 
     ddl_dir = os.path.join(repository_dir, 'ddl')
 
@@ -44,30 +55,39 @@ def run():
 
         logging.info(f'Scripting {d} to {db_backup_dir}')
 
-        sp.run([
-            'mssql-scripter',
-            '--server', server,
-            '--user', user,
-            '--password', password,
-            '-d', d,
-            '--file-path', db_backup_dir,
-            '--file-per-object',
-            '--exclude-headers',
-            '--exclude-use-database',
-        ])
+        completed_process = subprocess.run(
+            args=[
+                'mssql-scripter',
+                '--server', server,
+                '--user', user,
+                '--password', password,
+                '-d', d,
+                '--file-path', db_backup_dir,
+                '--file-per-object',
+                '--exclude-headers',
+                '--exclude-use-database',
+            ],
+            capture_output=True,
+            text=True,
+        )
 
-    logging.info(f'Committing and pushing repository at {repository_dir}')
-        
-    sp.run(
+        if len(completed_process.stdout) > 0:
+            raise ApplicationError(f'Error scripting "{d}":\n\n{completed_process.stdout}')
+
+    completed_process = subprocess.run(
         [
             'git',
             'add',
-            '-A',
         ],
         cwd=repository_dir,
+        capture_output=True,
+        text=True,
     )
 
-    sp.run(
+    if completed_process.returncode > 0:
+        raise ApplicationError(f'Error adding to git:\n\n{completed_process.stderr}')
+
+    completed_process = subprocess.run(
         [
             'git',
             'commit',
@@ -75,15 +95,26 @@ def run():
             f'{date.today():%d/%m/%Y}',
         ],
         cwd=repository_dir,
+        capture_output=True,
+        text=True,
     )
 
-    sp.run(
+    if completed_process.returncode > 1:
+        print(completed_process)
+        raise ApplicationError(f'Error commiting to git:\n\n{completed_process.stderr}')
+
+    completed_process = subprocess.run(
         [
             'git',
             'push',
         ],
         cwd=repository_dir,
+        capture_output=True,
+        text=True,
     )
+
+    if completed_process.returncode > 0:
+        raise ApplicationError(f'Error pushing to Github:\n\n{completed_process.stderr}')
 
     if os.path.exists(repository_dir):
         shutil.rmtree(repository_dir)
@@ -122,9 +153,24 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+logger = logging.getLogger('')
+logger.setLevel(logging.ERROR)
+email_handler = SMTPHandler(
+    mailhost=os.environ['SMTP_SERVER'],
+    fromaddr=os.environ['FROM_EMAIL'],
+    toaddrs=[os.environ['ERROR_RECIPIENT']],
+    subject='MSSQL_GITHUB ERROR',
+)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+email_handler.setFormatter(formatter)
+logger.addHandler(email_handler)
+
 args = get_parameters()
 
-if args.run:
-    run()
-else:
-    schedule_scripting()
+try:
+    if args.run:
+        run()
+    else:
+        schedule_scripting()
+except ApplicationError as e:
+    logging.error(e.message)
