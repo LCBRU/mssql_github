@@ -39,7 +39,7 @@ def run():
         ],
         cwd=repository_parent_dir,
         stderr=subprocess.PIPE,
-        text=True,
+        universal_newlines=True,
     )
 
     if completed_process.returncode > 0:
@@ -68,7 +68,7 @@ def run():
                 '--exclude-use-database',
             ],
             stdout=subprocess.PIPE,
-            text=True,
+            universal_newlines=True,
         )
 
         if len(completed_process.stdout) > 0:
@@ -82,7 +82,7 @@ def run():
         ],
         cwd=repository_dir,
         stderr=subprocess.PIPE,
-        text=True,
+        universal_newlines=True,
     )
 
     if completed_process.returncode > 0:
@@ -97,7 +97,7 @@ def run():
         ],
         cwd=repository_dir,
         stderr=subprocess.PIPE,
-        text=True,
+        universal_newlines=True,
     )
 
     if completed_process.returncode > 1:
@@ -111,7 +111,7 @@ def run():
         ],
         cwd=repository_dir,
         stderr=subprocess.PIPE,
-        text=True,
+        universal_newlines=True,
     )
 
     if completed_process.returncode > 0:
