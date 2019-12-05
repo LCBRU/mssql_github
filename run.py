@@ -38,7 +38,7 @@ def run():
             f'https://github.com/LCBRU/{repository_name}.git',
         ],
         cwd=repository_parent_dir,
-        capture_output=True,
+        stderr=subprocess.PIPE,
         text=True,
     )
 
@@ -67,7 +67,7 @@ def run():
                 '--exclude-headers',
                 '--exclude-use-database',
             ],
-            capture_output=True,
+            stdout=subprocess.PIPE,
             text=True,
         )
 
@@ -78,9 +78,10 @@ def run():
         [
             'git',
             'add',
+            '-A',
         ],
         cwd=repository_dir,
-        capture_output=True,
+        stderr=subprocess.PIPE,
         text=True,
     )
 
@@ -95,7 +96,7 @@ def run():
             f'{date.today():%d/%m/%Y}',
         ],
         cwd=repository_dir,
-        capture_output=True,
+        stderr=subprocess.PIPE,
         text=True,
     )
 
@@ -109,7 +110,7 @@ def run():
             'push',
         ],
         cwd=repository_dir,
-        capture_output=True,
+        stderr=subprocess.PIPE,
         text=True,
     )
 
