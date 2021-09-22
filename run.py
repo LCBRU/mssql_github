@@ -149,21 +149,24 @@ def schedule_scripting():
 
 load_dotenv()
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logging_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-logger = logging.getLogger('errors')
-logger.setLevel(logging.ERROR)
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.INFO)
+stream_handler.setFormatter(logging_format)
+
 email_handler = SMTPHandler(
     mailhost=os.environ['SMTP_SERVER'],
     fromaddr=os.environ['FROM_EMAIL'],
     toaddrs=[os.environ['ERROR_RECIPIENT']],
     subject='MSSQL_GITHUB ERROR',
 )
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-email_handler.setFormatter(formatter)
+email_handler.setLevel(logging.ERROR)
+email_handler.setFormatter(logging_format)
+
+logger.addHandler(stream_handler)
 logger.addHandler(email_handler)
 
 args = get_parameters()
