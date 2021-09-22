@@ -154,7 +154,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-logger = logging.getLogger('')
+logger = logging.getLogger('errors')
 logger.setLevel(logging.ERROR)
 email_handler = SMTPHandler(
     mailhost=os.environ['SMTP_SERVER'],
