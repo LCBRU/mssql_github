@@ -30,20 +30,6 @@ def run():
     if os.path.exists(repository_dir):
         shutil.rmtree(repository_dir)
 
-    completed_process = subprocess.run(
-        [
-            'git',
-            'clone',
-            f'https://github.com/LCBRU/{repository_name}.git',
-        ],
-        cwd=repository_parent_dir,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-    )
-
-    if completed_process.returncode > 0:
-        raise ApplicationError(f'Error cloning repository:\n\n{completed_process.stderr}')
-
     ddl_dir = os.path.join(repository_dir, 'ddl')
 
     if os.path.exists(ddl_dir):
@@ -72,52 +58,6 @@ def run():
 
         if len(completed_process.stdout) > 0:
             raise ApplicationError(f'Error scripting "{d}":\n\n{completed_process.stdout}')
-
-    completed_process = subprocess.run(
-        [
-            'git',
-            'add',
-            '-A',
-        ],
-        cwd=repository_dir,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-    )
-
-    if completed_process.returncode > 0:
-        raise ApplicationError(f'Error adding to git:\n\n{completed_process.stderr}')
-
-    completed_process = subprocess.run(
-        [
-            'git',
-            'commit',
-            '-m',
-            f'{date.today():%d/%m/%Y}',
-        ],
-        cwd=repository_dir,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-    )
-
-    if completed_process.returncode > 1:
-        print(completed_process)
-        raise ApplicationError(f'Error commiting to git:\n\n{completed_process.stderr}')
-
-    completed_process = subprocess.run(
-        [
-            'git',
-            'push',
-        ],
-        cwd=repository_dir,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-    )
-
-    if completed_process.returncode > 0:
-        raise ApplicationError(f'Error pushing to Github:\n\n{completed_process.stderr}')
-
-    if os.path.exists(repository_dir):
-        shutil.rmtree(repository_dir)
 
 
 def get_parameters():
