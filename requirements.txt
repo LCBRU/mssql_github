@@ -6,9 +6,11 @@ future==1.0.0
     # via mssql-scripter
 mssql-scripter==1.0.0a23
     # via -r requirements.in
+packaging==26.0
+    # via wheel
 python-dotenv==1.0.1
     # via -r requirements.in
 schedule==1.2.2
     # via -r requirements.in
-wheel==0.45.1
+wheel==0.46.2
     # via mssql-scripter
