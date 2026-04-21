@@ -6,7 +6,7 @@ future==1.0.0
     # via mssql-scripter
 mssql-scripter==1.0.0a23
     # via -r requirements.in
-python-dotenv==1.0.1
+python-dotenv==1.2.2
     # via -r requirements.in
 schedule==1.2.2
     # via -r requirements.in
